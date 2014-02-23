@@ -1,0 +1,50 @@
+/////
+vim:set ts=4 sw=4 syntax=asciidoc noet spell spelllang=en_us textwidth=88:
+/////
+bartleby(1)
+=========
+
+Name
+----
+bartleby - translation project manager using git
+
+
+Synopsis
+--------
+'bartleby' [options] [command] <args>
+
+
+Description
+-----------
+'bartleby' handles a translation project
+
+'bartleby' requires linkman:git[1] and (presently) linkman:po4a[1] to do its job.
+
+Options
+-------
+
+*--help, -h*::
+	show help
+*--version*::
+	show current version
+
+Commands
+--------
+
+*init*::
+	initialize a translation project
+
+*upgrade*::
+	upgrade the original materials
+
+*update*::
+    update the translations with another branch, commit or patch
+
+*export*::
+	export the translations to translated materials
+
+Examples
+--------
+
+  $ bartleby init foobar-docs -I /home/foo/foobar/doc
+  $ bartleby upgrade -I /home/foo/foobar/doc
