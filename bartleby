@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+
+# We need python3 here, don't known which is the better way
+#NEED_VERS = (3, 0)
+#if sys.version_info < NEED_VERS:
+#    sys.stderr.write("bartleby: error: cannot find a suitable python interpreter\n")
+#    sys.stderr.write("  (need %d.%d or later)\n" % NEED_VERS)
+#    sys.exit(1)
+
+_script_version = (0, 0, 1)
