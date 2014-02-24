@@ -2,11 +2,12 @@
 
 import os, shutil
 from libbartleby import config, helpers
+from libbartleby.repository import Repository
 
-class Project:
+class Project(Repository):
     def __init__(self, path):
         """Construct a project"""
-        self.path = os.path.abspath(path)
+        super().__init__(os.path.abspath(path))
         self.config = config.Config(os.path.join(self.path, helpers.configname))
         self.orig_path = os.path.join(self.path, 'orig')
     def create(self, importpath=''):
@@ -21,6 +22,7 @@ class Project:
         self.config.writecfg()
         if importpath:
             self._import(importpath)
+        self.init()
     def _import(self, path):
         if not os.path.exists(path):
             raise OSError("Project import: {} doesn't exits".format(path))
