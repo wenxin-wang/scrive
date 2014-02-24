@@ -56,6 +56,6 @@ class Repository:
         if not cached:
             return
         try:
-            subprocess.call(self.gitcmd + ['commit', '-m', msg]) !=0
+            subprocess.check_call(self.gitcmd + ['commit', '-m', msg]) !=0
         except subprocess.CalledProcessError as e:
             print(e, 'git commit failed')
