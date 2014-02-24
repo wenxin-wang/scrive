@@ -7,14 +7,20 @@
 #    sys.stderr.write("  (need %d.%d or later)\n" % NEED_VERS)
 #    sys.exit(1)
 
-import sys, getopt
+import sys, getopt, os
 from libbartleby import helpers
-from libbartleby.git import Repository
+from libbartleby.repository import Repository
 from libbartleby.project import Project
 from libbartleby.config import Config
 
 _script_version = (0, 0, 1)
 
-p = Project('test/sample')
-p.create('test/xyz.pod')
 Repository.get_toplevel()
+p = Project('test/sample')
+p.create(importpath='test/xyz.pod')
+s=p.get_status()
+print(s)
+print("*")
+r = Repository(os.getcwd())
+s=r.get_status()
+print(s)
