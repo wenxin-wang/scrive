@@ -38,3 +38,24 @@ class Repository:
                 relname = line.split(" ")[1]
                 cached.append(os.path.join(self.path, relname))
         return cached, changed, created
+    def add_to_cache(self, files):
+        """
+        Read a list of files, add them to cache
+        """
+        for filename in files:
+            print(filename)
+            try:
+                subprocess.check_call(self.gitcmd + ['add', filename]) != 0
+            except subprocess.CalledProcessError as e:
+                print(e, 'git add: {} failed'.format(filename))
+    def commit(self, msg):
+        """
+        If there's something in cache, commit them with msg
+        """
+        cached, _, _ = self.get_status()
+        if not cached:
+            return
+        try:
+            subprocess.call(self.gitcmd + ['commit', '-m', msg]) !=0
+        except subprocess.CalledProcessError as e:
+            print(e, 'git commit failed')
