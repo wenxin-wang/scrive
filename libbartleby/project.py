@@ -11,15 +11,14 @@ class Project:
         self.orig_path = os.path.join(self.path, 'orig')
     def create(self, importpath=''):
         if os.path.exists(self.path):
-            return
-        try:
+            if not helpers.dir_empty(self.path):
+                raise OSError("Create project: {} exists and not empty".format(self.path))
+        else:
             os.mkdir(self.path)
-            os.mkdir(self.orig_path)
-            self.config["Language"] = {}
-            self.config["Language"]['Orig'] = 'en_US'
-            self.config.writecfg()
-        except OSError as e:
-            print(e)
+        os.mkdir(self.orig_path)
+        self.config["Language"] = {}
+        self.config["Language"]['Orig'] = 'en_US'
+        self.config.writecfg()
         if importpath:
             self._import(importpath)
     def _import(self, path):
@@ -29,12 +28,17 @@ class Project:
             for dirpath, dirs, files in os.walk(path):
                 relpath = os.path.relpath(dirpath, path)
                 for dirname in dirs:
-                    os.mkdir(os.path.join(self.orig_path, relpath, dirname))
+                    dest = os.path.join(self.orig_path, relpath, dirname)
+                    os.mkdir(dest)
                 for filename in files:
-                    shutil.copy(os.path.join(dirpath, filename), os.path.join(self.orig_path, relpath, filename))
+                    orig = os.path.join(dirpath, filename)
+                    dest = os.path.join(self.orig_path, relpath, filename)
+                    shutil.copy(orig, dest)
         else:
             filename = os.path.basename(path)
-            shutil.copy(path, os.path.join(self.orig_path, filename))
+            orig = path
+            dest = os.path.join(self.orig_path, filename)
+            shutil.copy(orig, dest)
     def update_original(self):
         """docstring for update_original"""
     def update_translations(self):
