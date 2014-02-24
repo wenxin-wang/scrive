@@ -23,6 +23,9 @@ class Project(Repository):
         if importpath:
             self._import(importpath)
         self.init()
+        files = self.get_status()
+        self.add_to_cache(files[1]+files[2])
+        self.commit("Initialized project {}".format(os.path.basename(self.path)))
     def _import(self, path):
         if not os.path.exists(path):
             raise OSError("Project import: {} doesn't exits".format(path))
