@@ -13,5 +13,12 @@ class Config(configparser.ConfigParser):
         return '\n'.join('[' + section + ']\n' + '\n'.join(str(k)+'='+str(v) for (k,v) in self[section].items()) for section in self.sections())
     def writecfg(self):
         """Write a config file to disk"""
-        with open(self.cfgfile, 'a+') as cfg:
+        with open(self.cfgfile, 'w') as cfg:
             self.write(cfg)
+    def set_orig_lang(self, lang, force=False):
+        """Set the language of original project"""
+        if self.has_option("Original", "lang") and not force:
+            raise Exception("Language of the original project already setted and we didn't force the changing")
+        if not self.has_section("Original"):
+            self.add_section("Original")
+            self["Original"]["lang"] = lang
