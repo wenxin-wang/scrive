@@ -8,19 +8,52 @@
 #    sys.exit(1)
 
 import sys, getopt, os
-from libbartleby import helpers
-from libbartleby.repository import Repository
-from libbartleby.project import Project
-from libbartleby.config import Config
+from libbartleby.helpers import log, columnate
+
+exe = os.path.realpath(sys.argv[0])
+exepath = os.path.split(exe)[0]
+exeprefix = os.path.split(os.path.abspath(exepath))[0] # if run as /usr/bin/bartleby, return /usr
+if os.path.exists("%s/libbartleby/cmd/." % exeprefix):
+    # installed binary in /.../bin.
+    # eg. /usr/bin/bartleby means /usr/lib/libbartleby/... is where our libraries are.
+    cmdpath = "%s/libbartleby/cmd" % exeprefix
+    libpath = "%s/libbartleby" % exeprefix
+    resourcepath = libpath
+else:
+    # running from the src directory without being installed first
+    cmdpath = os.path.join(exepath, 'cmd')
+    libpath = os.path.join(exepath, 'libbartleby')
+    resourcepath = libpath
+sys.path[:0] = [libpath]
+os.environ['PYTHONPATH'] = libpath + ':' + os.environ.get('PYTHONPATH', '') # Why?
 
 _script_version = (0, 0, 1)
 
-Repository.get_toplevel()
-p = Project('test/sample')
-p.create(importpath='test/xyz.pod')
-s=p.get_status()
-print(s)
-print("*")
-r = Repository(os.getcwd())
-s=r.get_status()
-print(s)
+def usage(msg='', state=0):
+    """Print usage"""
+    log('Usage: bartleby [-?|-h|--help] [--version] '
+        '<command> [options...]')
+    common = {
+            'init' : "initialize a translation project",
+            'import' : "import original file(s) from directory or file",
+            'update' : "update translation files according to changes in original files",
+            'render' : "render translated files according to translations",
+            }
+    log("")
+    log('Common commmands:')
+    for cmd, synopsis in sorted(common.items()):
+        log('   {:<10} {}'.format(cmd+':', synopsis))
+    log("")
+    log('Other commands:')
+    cmds = []
+    for cmdfile in sorted(os.listdir(cmdpath)):
+        cname = cmdfile
+        if cname not in common:
+            cmds.append(cname)
+    log(columnate(cmds, '   '))
+    log("See 'bup help COMMAND' for more information on a specific command.")
+    if msg:
+        log(msg)
+    sys.exit(state)
+
+usage()
