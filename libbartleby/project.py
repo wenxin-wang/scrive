@@ -1,7 +1,7 @@
 # Define a translatin project here
 
 import os, shutil
-from libbartleby import config, helpers
+from libbartleby import config, helpers, translator
 from libbartleby.repository import Repository
 
 class Project(Repository):
@@ -17,16 +17,13 @@ class Project(Repository):
         else:
             os.mkdir(self.path)
         os.mkdir(self.orig_path)
-        self.config["Language"] = {}
-        self.config["Language"]['Orig'] = 'en_US'
-        self.config.writecfg()
         if importpath:
             self._import(importpath)
         self.init()
         files = self.get_status()
         self.add_to_cache(files[1]+files[2])
         self.commit("Initialized project {}".format(os.path.basename(self.path)))
-    def _import(self, path):
+    def _import(self, path, lang='en_US'):
         if not os.path.exists(path):
             raise OSError("Project import: {} doesn't exits".format(path))
         elif os.path.isdir(path):
@@ -44,6 +41,30 @@ class Project(Repository):
             orig = path
             dest = os.path.join(self.orig_path, filename)
             shutil.copy(orig, dest)
+        self._update_orig_file_list()
+        self.config.set_orig_lang(lang)
+        self.config.writecfg()
+    def _get_orig_files(self):
+        """Get files under self.orig_path"""
+        if not os.path.exists(self.orig_path):
+            raise OSError("{} doesn't exits".format(self.orig_path))
+        orig_files = []
+        for dirpath, dirs, files in os.walk(self.orig_path):
+            relpath = os.path.relpath(dirpath, self.orig_path)
+            if relpath == '.':
+                relpath = ''
+            for filename in files:
+                relname = os.path.join(relpath, filename)
+                orig_files.append(relname)
+        return orig_files
+    def _update_orig_file_list(self):
+        """Update original file list"""
+        orig_files = self._get_orig_files()
+        with open(os.path.join(self.path, helpers.filelistname), 'w+') as filelist:
+            for filename in orig_files:
+                realfile = os.path.join(self.orig_path, filename)
+                filelist.write(filename + " : " + translator.get_filetype(realfile) + '\n')
+
     def update_original(self):
         """docstring for update_original"""
     def update_translations(self):

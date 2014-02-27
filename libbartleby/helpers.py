@@ -1,6 +1,7 @@
 import sys, os
 
 configname = 'config.ini' if sys.platform == 'win32' else '.config'
+filelistname = 'filelist.ini' if sys.platform == 'win32' else '.filelist'
 
 def log(msg):
     """Log msg"""
