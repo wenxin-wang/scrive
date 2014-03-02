@@ -15,7 +15,7 @@ class Repository:
         """
         Same as calling 'git init self.path'
         """
-        return subprocess.call(["git", "init", self.path])
+        return subprocess.call(self.gitcmd + ["init"])
     def get_status(self):
         """
         Get current git status. If success, return:
@@ -25,7 +25,6 @@ class Repository:
         changed = []
         created = []
         s = subprocess.check_output(self.gitcmd + ['status', '--porcelain'], universal_newlines=True)
-        print(s)
         for line in s.splitlines():
             print(line.split(" "))
             if line.startswith(" "):
@@ -38,6 +37,14 @@ class Repository:
                 relname = line.split(" ")[1]
                 cached.append(os.path.join(self.path, relname))
         return cached, changed, created
+    def is_clean(self):
+        """
+        Check if repository has nothing to commit or uncached
+        """
+        for l in self.get_status:
+            if not l:
+                return False
+        return True
     def add_to_cache(self, files):
         """
         Read a list of files, add them to cache
