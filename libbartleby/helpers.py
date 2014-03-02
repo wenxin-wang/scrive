@@ -23,4 +23,15 @@ def columnate(items, prefix):
         return ""
     _return = prefix
     for item in items:
-        item+= "%s  " % item
+        _return += "%s  " % item
+    return _return
+
+def cmd_filename(subcmd_name):
+    return subcmd_name + '.py'
+
+def file_cmdname(filename):
+    name, ext = os.path.splitext(filename)
+    if not ext or ext == '.py':
+        return name
+    else:
+        return None

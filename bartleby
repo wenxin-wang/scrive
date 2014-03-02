@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# I borrowed a lot of code from github.com/bup/bup
+
 # We need python3 here, don't known which is the better way
 #NEED_VERS = (3, 0)
 #if sys.version_info < NEED_VERS:
@@ -8,9 +10,12 @@
 #    sys.exit(1)
 
 import sys, getopt, os
-from libbartleby.helpers import log, columnate
+from libbartleby.helpers import *
 
-exe = os.path.realpath(sys.argv[0])
+E_BADARG = 99
+
+argv = sys.argv
+exe = os.path.realpath(argv[0])
 exepath = os.path.split(exe)[0]
 exeprefix = os.path.split(os.path.abspath(exepath))[0] # if run as /usr/bin/bartleby, return /usr
 if os.path.exists("%s/libbartleby/cmd/." % exeprefix):
@@ -25,19 +30,27 @@ else:
     libpath = os.path.join(exepath, 'libbartleby')
     resourcepath = libpath
 sys.path[:0] = [libpath]
-os.environ['PYTHONPATH'] = libpath + ':' + os.environ.get('PYTHONPATH', '') # Why?
+os.environ['PYTHONPATH'] = libpath + ':' + os.environ.get('PYTHONPATH', '') # Set PYTHONPATH for our child processes
 
 _script_version = (0, 0, 1)
+os.environ['BARTLEBY_VERSION'] = '{}.{}.{}'.format(*_script_version)
+
+def version():
+    """print version"""
+    log('Bartleby: a humble translation project manager. Version: {}.{}.{}'.format(*_script_version))
+    sys.exit()
 
 def usage(msg='', state=0):
     """Print usage"""
-    log('Usage: bartleby [-?|-h|--help] [--version] '
+    log('Usage: bartleby [-h|--help] [--version] '
         '<command> [options...]')
     common = {
             'init' : "initialize a translation project",
             'import' : "import original file(s) from directory or file",
+            'help' : 'Print detailed help for the given command',
             'update' : "update translation files according to changes in original files",
             'render' : "render translated files according to translations",
+            'version' : "Print version message"
             }
     log("")
     log('Common commmands:')
@@ -47,8 +60,8 @@ def usage(msg='', state=0):
     log('Other commands:')
     cmds = []
     for cmdfile in sorted(os.listdir(cmdpath)):
-        cname = cmdfile
-        if cname not in common:
+        cname = file_cmdname(cmdfile)
+        if cname and cname not in common:
             cmds.append(cname)
     log(columnate(cmds, '   '))
     log("See 'bup help COMMAND' for more information on a specific command.")
@@ -56,4 +69,76 @@ def usage(msg='', state=0):
         log(msg)
     sys.exit(state)
 
-usage()
+if len(argv) < 2:
+    usage(state=E_BADARG)
+
+# Handle global options.
+try:
+    optspec = ['help', 'version']
+    global_args, subcmd = getopt.getopt(argv[1:], 'h', optspec)
+except getopt.GetoptError as ex:
+    usage('error: %s' % ex.msg)
+
+need_help = False
+for opt, val in global_args:
+    if opt in ['-h', '--help']:
+        need_help = True
+    elif opt in ['--version']:
+        subcmd = ['version']
+    else:
+        usage('error: unexpected option "%s"' % opt, E_BADARG)
+
+# This three form is when we need help
+# bartleby help [command] This form is handled above
+# bartleby --help [command]
+# bartleby command [--help]
+
+if not subcmd:
+    if need_help:
+        subcmd = ['help']
+    else:
+        usage("error: need a command here", E_BADARG)
+elif subcmd[0] != 'help':
+    if need_help or '-h' in subcmd or '--help' in subcmd:
+        subcmd = [ s for s in subcmd if s != '-h' and s != '--help' ]
+        subcmd = ['help'] + subcmd
+
+print(subcmd)
+
+subcmd_name = subcmd[0]
+if not subcmd_name:
+    usage("error: need a command here", E_BADARG)
+
+def get_subcmd_file(cmdname):
+    return os.path.join(cmdpath, cmdname)
+
+subcmd_file = get_subcmd_file(cmd_filename(subcmd_name))
+print(subcmd_file)
+if not os.path.isfile(subcmd_file):
+    usage("error: {} not a valid bartleby command".format(subcmd_name))
+
+ret = 95
+p = None
+forward_signals = True
+
+def handler(signum, frame):
+    if not p or not forward_signals:
+        return
+    if signum != signal.SIGTSTP:
+        os.kill(p.pid, signum)
+    else: # SIGTSTP: stop the child, then ourselves.
+        os.kill(p.pid, signal.SIGSTOP)
+        signal.signal(signal.SIGTSTP, signal.SIG_DFL)
+        os.kill(os.getpid(), signal.SIGTSTP)
+        # Back from suspend -- reestablish the handler.
+        signal.signal(signal.SIGTSTP, handler)
+    ret = 94
+
+cmd = subcmd
+cmd[0] = subcmd_file
+try:
+    os.execvp(cmd[0], cmd)
+except OSError as e:
+    err("{}: {}".format(cmd[0], e))
+finally:
+    sys.exit(ret)
