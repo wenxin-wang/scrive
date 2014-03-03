@@ -3,7 +3,7 @@
 Use the concept of optionspec from bup.
 Get a optionspec from subcmd, use it to parse a string of options
 An example of optionspec:
-'bartleby cmd [ -o ]
+'scrive cmd [ -o ]
 ---
 o,option=: description
 ,no_short: no short name
@@ -11,7 +11,7 @@ o,option=: description
 """
 
 import getopt
-from libbartleby.helpers import log
+from libscrive.helpers import log
 
 class OptDict:
     """

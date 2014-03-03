@@ -1,8 +1,8 @@
 # Define a translatin project here
 
 import os, shutil
-from libbartleby import config, helpers, translator
-from libbartleby.repository import Repository
+from libscrive import config, helpers, translator
+from libscrive.repository import Repository
 
 class Project(Repository):
     def __init__(self, path):

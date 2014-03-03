@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from libbartleby import helpers, options
-from libbartleby.project import Project
+from libscrive import helpers, options
+from libscrive.project import Project
 
 import sys, os
 
 optspec = """
-bartleby init [-i importpath] [path]
+scrive init [-i importpath] [path]
 ---
 i,import=: import file or directory
 ,origlang=: the language of original files
